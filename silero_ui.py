@@ -205,9 +205,30 @@ def update_speakers(language):
     speakers = get_speakers(language)
     return gr.Dropdown(choices=speakers, value=speakers[0])
 
+# === Custom CSS to fix audio seek bar overlapping time ===
+custom_css = """
+/* Fix audio player time display overlap for long audio */
+.audio-output {
+    padding-bottom: 25px !important;
+}
+.audio-output audio {
+    min-height: 75px !important;
+}
+/* Gradio 4.x+ audio component */
+[data-testid="audio"] {
+    padding-bottom: 20px !important;
+}
+[data-testid="audio"] audio {
+    min-height: 70px !important;
+}
+/* Waveform container padding */
+.waveform-container {
+    margin-bottom: 15px !important;
+}
+"""
 
 # === Build Gradio interface ===
-with gr.Blocks(title="Silero TTS Portable") as demo:
+with gr.Blocks(title="Silero TTS Portable", css=custom_css) as demo:
     gr.Markdown("""
     # 🗣️ Silero текст-в-речь ===> автор сборки: [NeiroVlad](https://oti.by)
     Портативная версия TTS на базе моделей Silero. При первом запуске модели скачиваются и сохраняются в папку `cache/torch`.
@@ -250,7 +271,8 @@ with gr.Blocks(title="Silero TTS Portable") as demo:
             audio_output = gr.Audio(
                 label="🔊 Созданный файл",
                 type="filepath",
-                autoplay=False
+                autoplay=False,
+                elem_classes="audio-output"
             )
             status = gr.Textbox(
                 label="📋 Статус",
