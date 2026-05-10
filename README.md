@@ -85,7 +85,7 @@ Silero TTS — высококачественная нейросеть для с
 
 Silero поддерживает [SSML-разметку](https://github.com/snakers4/silero-models/wiki/SSML) для тонкого контроля над синтезом:
 
-### Ударения
+### Ударения (работают в Common и SSML режимах)
 ```xml
 <speak>В недрах тундры выдры в г+етрах т+ырят в вёдра ядра к+едров.</speak>
 ```
@@ -201,6 +201,7 @@ Silero-TTS-Portable/
 - **Gradio** — [gradio.app](https://gradio.app)
 - **PyTorch** — [pytorch.org](https://pytorch.org)
 - **UV** — [astral.sh/uv](https://astral.sh/uv)
+- **NeuroSenko** ([huggingface.co/spaces/NeuroSenko](https://huggingface.co/spaces/NeuroSenko/tts-silero/tree/main)) — демо-версия Silero
 
 ## Лицензия
 
@@ -212,8 +213,7 @@ Silero-TTS-Portable/
 - **NeiroVlad** ([github.com/vlad-ir](https://github.com/vlad-ir)) — автор портабельной сборки
 - **oti.by** ([t.me/vlad_vlk](https://t.me/vlad_vlk)) — [oti.by](https://oti.by) — нейронные сети и умные чат-боты для бизнеса
 - **Нейронки в бизнесе и в жизни** ([t.me/neiro_com](https://t.me/neiro_com)) — промпты, примеры, советы и т.д. 
-- **Silero Team** ([github.com/snakers4](https://github.com/snakers4)) — авторы моделей TTS
-- **NeuroSenko** ([huggingface.co/spaces/NeuroSenko](https://huggingface.co/spaces/NeuroSenko/tts-silero/tree/main)) — демо-версия Silero
+
 
 ## Поддержать автора
 
