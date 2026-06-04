@@ -29,13 +29,17 @@ set "CONDA_DIR=%TOOLS%\miniconda"
 set "VENV=%ROOT%\.venv"
 set "CACHE=%ROOT%\cache"
 
-REM Cache directories
+REM Cache directories (все кэши внутри папки проекта)
 set "UV_CACHE_DIR=%CACHE%\uv"
 set "UV_PYTHON_CACHE_DIR=%CACHE%\uv\python"
 set "UV_TOOL_DIR=%CACHE%\uv\tools"
 set "UV_PYTHON_INSTALL_DIR=%CACHE%\uv\python-installs"
+set "PIP_CACHE_DIR=%CACHE%\pip"
 set "HF_HOME=%CACHE%\huggingface"
 set "TORCH_HOME=%CACHE%\torch"
+
+REM UV + pip режим копирования (для портативности)
+set "UV_LINK_MODE=copy"
 
 set "GIT_EXE=%TOOLS%\PortableGit\bin\git.exe"
 set "PORTABLEGIT_EXE=%TOOLS%\PortableGit.7z.exe"
@@ -49,6 +53,8 @@ set "UV_URL=https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-p
 echo Root: %ROOT%
 echo Tools: %TOOLS%
 echo Cache: %CACHE%
+echo UV cache: %UV_CACHE_DIR%
+echo PIP cache: %PIP_CACHE_DIR%
 
 REM Re-install checkup
 if exist "%VENV%\python.exe" (
@@ -74,6 +80,7 @@ if not exist "%UV_CACHE_DIR%" mkdir "%UV_CACHE_DIR%"
 if not exist "%UV_PYTHON_CACHE_DIR%" mkdir "%UV_PYTHON_CACHE_DIR%"
 if not exist "%UV_TOOL_DIR%" mkdir "%UV_TOOL_DIR%"
 if not exist "%UV_PYTHON_INSTALL_DIR%" mkdir "%UV_PYTHON_INSTALL_DIR%"
+if not exist "%PIP_CACHE_DIR%" mkdir "%PIP_CACHE_DIR%"
 if not exist "%HF_HOME%" mkdir "%HF_HOME%"
 if not exist "%TORCH_HOME%" mkdir "%TORCH_HOME%"
 
@@ -128,10 +135,6 @@ python -m pip install uv --quiet
 
 REM Install dependencies: torch+cu128, torchaudio+cu128, omegaconf, gradio
 echo Installing dependencies with CUDA 12.8 support...
-set "UV_CACHE_DIR=%UV_CACHE_DIR%"
-set "UV_PYTHON_CACHE_DIR=%UV_PYTHON_CACHE_DIR%"
-set "UV_TOOL_DIR=%UV_TOOL_DIR%"
-set "UV_PYTHON_INSTALL_DIR=%UV_PYTHON_INSTALL_DIR%"
 
 REM Uninstall CPU versions if present
 uv pip uninstall torch torchvision torchaudio --python "%VENV%\python.exe" 2>nul
@@ -139,7 +142,6 @@ uv pip uninstall torch torchvision torchaudio --python "%VENV%\python.exe" 2>nul
 REM Install PyTorch 2.8.0 + cu128
 echo Installing PyTorch with CUDA 12.8 support...
 uv pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 --python "%VENV%\python.exe"
-
 
 REM Install remaining dependencies
 echo Installing omegaconf, gradio...
@@ -154,12 +156,16 @@ if not exist "%ROOT%\silero_ui.py" (
     goto main_menu
 )
 
-REM Cleaning cache
-rmdir /s /q "%CACHE%\." 2>nul
+REM НЕ удаляем кэш — он нужен для портативности!
+REM rmdir /s /q "%CACHE%\." 2>nul
 
 REM Restore PATH
 set "PATH=%OLD_PATH%"
 echo [INFO] Installation finished.
+echo [INFO] UV cache: %UV_CACHE_DIR%
+echo [INFO] PIP cache: %PIP_CACHE_DIR%
+echo [INFO] HF cache: %HF_HOME%
+echo [INFO] Torch cache: %TORCH_HOME%
 pause
 goto main_menu
 
@@ -171,7 +177,19 @@ set "TOOLS=%ROOT%\tools"
 set "CONDA_DIR=%TOOLS%\miniconda"
 set "VENV=%ROOT%\.venv"
 set "CACHE=%ROOT%\cache"
+
+REM Cache directories (все кэши внутри папки проекта)
 set "UV_CACHE_DIR=%CACHE%\uv"
+set "UV_PYTHON_CACHE_DIR=%CACHE%\uv\python"
+set "UV_TOOL_DIR=%CACHE%\uv\tools"
+set "UV_PYTHON_INSTALL_DIR=%CACHE%\uv\python-installs"
+set "PIP_CACHE_DIR=%CACHE%\pip"
+set "HF_HOME=%CACHE%\huggingface"
+set "TORCH_HOME=%CACHE%\torch"
+
+REM UV + pip режим копирования
+set "UV_LINK_MODE=copy"
+
 set "PATH=%CONDA_DIR%\Scripts;%CONDA_DIR%;%TOOLS%\PortableGit\cmd;%TOOLS%;%PATH%"
 
 REM === Checkup ===
@@ -184,12 +202,6 @@ cls
 call "%CONDA_DIR%\Scripts\activate.bat" "%VENV%"
 cd /d "%ROOT%"
 
-REM Set UV cache env vars for update
-set "UV_CACHE_DIR=%UV_CACHE_DIR%"
-set "UV_PYTHON_CACHE_DIR=%CACHE%\uv\python"
-set "UV_TOOL_DIR=%CACHE%\uv\tools"
-set "UV_PYTHON_INSTALL_DIR=%CACHE%\uv\python-installs"
-
 echo [INFO] Updating PyTorch with CUDA 12.8 support...
 uv pip uninstall torch torchvision torchaudio --python "%VENV%\python.exe" 2>nul
 uv pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 --python "%VENV%\python.exe"
@@ -201,32 +213,30 @@ if %ERRORLEVEL% == 0 goto :done_update
 
 echo [WARN] Update failed, retrying...
 uv pip install torch==2.8.0+cu128 torchaudio==2.8.0+cu128 --extra-index-url https://download.pytorch.org/whl/cu128 --python "%VENV%\python.exe"
-
-echo [INFO] Updating remaining dependencies...
 uv pip install --upgrade omegaconf "gradio>=6.0" --python "%VENV%\python.exe"
-
-
-REM Cleaning cache
-rmdir /s /q "%CACHE%\." 2>nul
-
-pause
-goto main_menu
 
 :done_update
 echo [INFO] Update finished.
+echo [INFO] UV cache: %UV_CACHE_DIR%
+echo [INFO] PIP cache: %PIP_CACHE_DIR%
 pause
 goto main_menu
-
-
 
 :start_Silero
 cls
 set "ROOT=%CD%"
 set "CACHE=%ROOT%\cache"
+
+REM Cache directories (все кэши внутри папки проекта)
+set "UV_CACHE_DIR=%CACHE%\uv"
+set "PIP_CACHE_DIR=%CACHE%\pip"
 set "XDG_CACHE_HOME=%ROOT%\cache"
 set "HF_HOME=%XDG_CACHE_HOME%\huggingface"
 set "TORCH_HOME=%XDG_CACHE_HOME%\torch"
 set "VENV=%ROOT%\.venv"
+
+REM UV режим копирования
+set "UV_LINK_MODE=copy"
 
 if not exist "%VENV%\python.exe" (
     echo [ERROR] Virtual environment not found. Please install Silero before starting.
@@ -246,6 +256,8 @@ echo [INFO] Starting Silero TTS...
 echo [INFO] If you're launching Silero first time, models will be downloaded for using them offline.
 echo [INFO] Browser will open automatically when server is ready.
 echo [INFO] Press Ctrl+C or close this window to stop.
+echo [INFO] UV cache: %UV_CACHE_DIR%
+echo [INFO] HF cache: %HF_HOME%
 
 REM Run Python in foreground (same window) - stops when window closes
 python "%ROOT%\silero_ui.py"
